@@ -1,30 +1,29 @@
-# Indicates compilator to use
-CC      = g++
+###############################################################################
+#
+# CUDA-SURF v0.5
+# Copyright 2010 FUDAN UNIVERSITY
+# Author: Max Lv
+# Email: max.c.lv#gmail.com
+#
+################################################################################
 
-# Specifies compilator options
-CFLAGS  = -O2 -Wall 
-LDFLAGS = 
-LDLIBS  = 
+# Add source files here
+EXECUTABLE	   := refine
+# CUDA source files (compiled with cudacc)
+CUFILES_sm_11  := \
+	match_kernel.cu
 
-# Files extensions .cpp, .o
-SUFFIXES = .cpp .o 
-.SUFFIXES: $(SUFFIXES) .
+CCFILES        := \
+	main.cpp \
 
-# Name of the main program
-PROG  = refine
+COMMONFLAGS  += `pkg-config --cflags opencv`
 
-# Object files .o necessary to build the main program
-OBJS  = main.o
- 
-all: $(PROG)
+#NVCCFLAGS += -ptx
+LINKFLAGS += `pkg-config --libs opencv`
 
-# Compilation and link
-$(PROG): $(OBJS)
-	$(CC) $(LDFLAGS) -o $(PROG) $(OBJS) $(LDLIBS)
+#verbose = 1
 
-.cpp.o:
-	$(CC)   $(CFLAGS) -c $< -o $@
+ROOTDIR := common
 
-clean:
-	-rm -f $(PROG)
-	-rm -f *.o
+################################################################################
+include common/common.mk

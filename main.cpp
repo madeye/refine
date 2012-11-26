@@ -12,6 +12,8 @@
 #include <sys/time.h>
 #include <sys/timeb.h>
 
+extern float get_matches_gpu(IpVec &ipts1, IpVec &ipts2, int &pairs);
+
 #define GET_TIME(start, end, duration)                                     \
    duration.tv_sec = (end.tv_sec - start.tv_sec);                         \
    if (end.tv_usec >= start.tv_usec) {                                     \
@@ -145,7 +147,9 @@ int main(int args, char** argv) {
         struct timeval  tick_x, tick_e, tick_d;
         gettimeofday(&tick_x, 0);
 
-        get_matches(orig, vec, pairs);
+        //get_matches(orig, vec, pairs);
+
+        get_matches_gpu(orig, vec, pairs);
 
         gettimeofday(&tick_e, 0);
         GET_TIME(tick_x, tick_e, tick_d);
@@ -162,9 +166,9 @@ int main(int args, char** argv) {
     // Sort all matches
     std::sort(matches.begin(), matches.end(), compare);
 
-    //for (int i = 0; i < 3; i++) {
-        //std::cout << matches[i].index << std::endl;
-    //}
+    for (int i = 0; i < 3; i++) {
+        std::cout << matches[i].index << std::endl;
+    }
 
     gettimeofday(&bd_tick_e, 0);
     GET_TIME(bd_tick_x, bd_tick_e, bd_tick_d);
