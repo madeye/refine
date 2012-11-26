@@ -8,6 +8,25 @@
 #include "float.h"
 #include "stdlib.h"
 
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/timeb.h>
+
+#define GET_TIME(start, end, duration)                                     \
+   duration.tv_sec = (end.tv_sec - start.tv_sec);                         \
+   if (end.tv_usec >= start.tv_usec) {                                     \
+      duration.tv_usec = (end.tv_usec - start.tv_usec);                   \
+   }                                                                       \
+   else {                                                                  \
+      duration.tv_usec = (1000000L - (start.tv_usec - end.tv_usec));   \
+      duration.tv_sec--;                                                   \
+   }                                                                       \
+   if (duration.tv_usec >= 1000000L) {                                  \
+      duration.tv_sec++;                                                   \
+      duration.tv_usec -= 1000000L;                                     \
+   }
+   
+
 #define RATIO 0.3f
 #define THRESHOLD 5
 
@@ -95,6 +114,9 @@ int main(int args, char** argv) {
     const char* result_path = argv[3];
     const char* point_path = argv[4];
 
+    struct timeval  bd_tick_x, bd_tick_e, bd_tick_d;
+    gettimeofday(&bd_tick_x, 0);
+
     // Read the feature vector of the provided image
     IpVec orig;
     char vec_path[PATH_MAX];
@@ -107,6 +129,7 @@ int main(int args, char** argv) {
     sprintf(list_path, "%s/%d.txt", result_path, img_num);
     std::ifstream result_file(list_path);
     int skip = 1;
+    float compute_time = 0;
     for (int i = 0; i < top_num; i++) {
         int index;
         if (!(result_file >> index)) break;
@@ -118,7 +141,16 @@ int main(int args, char** argv) {
         get_vector(path, vec);
 
         int pairs;
+
+        struct timeval  tick_x, tick_e, tick_d;
+        gettimeofday(&tick_x, 0);
+
         get_matches(orig, vec, pairs);
+
+        gettimeofday(&tick_e, 0);
+        GET_TIME(tick_x, tick_e, tick_d);
+
+        compute_time += tick_d.tv_sec + tick_d.tv_usec/1000000.0f;
 
         ImageMatch match;
         match.index = index;
@@ -130,8 +162,15 @@ int main(int args, char** argv) {
     // Sort all matches
     std::sort(matches.begin(), matches.end(), compare);
 
-    for (int i = 0; i < 3; i++) {
-        std::cout << matches[i].index << std::endl;
-    }
+    //for (int i = 0; i < 3; i++) {
+        //std::cout << matches[i].index << std::endl;
+    //}
+
+    gettimeofday(&bd_tick_e, 0);
+    GET_TIME(bd_tick_x, bd_tick_e, bd_tick_d);
+
+    float all_time = bd_tick_d.tv_sec + bd_tick_d.tv_usec/1000000.0f;
+
+    std::cout << compute_time << "," << all_time - compute_time << std::endl;
 
 }
